@@ -1,5 +1,5 @@
 ---
-title: Polymarket Crypto Markets: Outcome Dependence and Random-Walk Exploration
+title: "Polymarket Crypto Markets: Outcome Dependence and Random-Walk Exploration"
 date: 2026-03-11 13:00:00 +0800
 categories: [Weekly Research, Polymarket]
 tags: [polymarket, microstructure, markov-chain, random-walk]
