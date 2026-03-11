@@ -1,6 +1,6 @@
 ---
 title: Are Polymarket Crypto 5m/15m Prices a Random Walk?
-date: 2026-03-11 20:00:00 +0800
+date: 2026-03-11 13:00:00 +0800
 categories: [Weekly Research, Polymarket]
 tags: [polymarket, microstructure, random-walk, markov-chain]
 math: true
