@@ -136,7 +136,7 @@ Standardized gap in the notebook:
 \frac{\hat p_{UU,t}(1-\hat p_{UU,t})}{n_{\text{prev up},t}}
 }
 ,\quad
-z\_{{gap},t}=\frac{\text{Gap}_t}{\text{SE}_t}
+z_{gap,t}=\frac{\text{Gap}_t}{\text{SE}_t}
 \]
 
 Simple reversal predictor used for benchmark:
