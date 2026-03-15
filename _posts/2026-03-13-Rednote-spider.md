@@ -1,8 +1,8 @@
 ---
 title: "Mining RedNote QR Problems: Building a Structured Community-Sourced Question Bank"
 date: 2026-03-13 13:00:00 +0800
-categories: [Weekly Research, QR Interview]
-tags: [rednote, xiaohongshu, quant-research, question-bank, ocr, nlp]
+categories: [QR Interview]
+tags: [rednote, quant-research, question-bank, ocr, nlp]
 math: false
 toc: true
 ---
