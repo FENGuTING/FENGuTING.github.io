@@ -74,7 +74,7 @@ At a high level, the analysis pipeline is:
 
 - unconditional symmetry diagnostics by timeframe
 - formal symmetry tests by symbol/timeframe
-- transition-based independence tests (`P(Up|Up)` vs `P(Up|Down)`)
+- transition-based independence tests (P_up_given_up vs P_up_given_down)
 - run statistics and weekday/month stability checks
 - 15m first-order and second-order Markov summaries
 - rolling stability diagnostics (window = 200)
@@ -190,13 +190,13 @@ Only `sol-1h` is marginally significant in this sample (`p≈0.0356`). I treat t
 
 ### 5.3 The strongest dependence appears at 15m, and it is reversal-like
 
-**Figure 1. 15m P(Up|Up) vs P(Up|Down) by symbol**
+**Figure 1. 15m P(Up given Up) vs P(Up given Down) by symbol**
 
 ![Figure 1](/assets/images/2026-03-11-polymarket-random-walk/outcome/figure1_transition_15m.png)
 
 **Table 3. Transition-Independence Test Summary**
 
-| symbol | timeframe | N_pairs | P(Up|Up) | P(Up|Down) | delta_P | z | p_value |
+| symbol | timeframe | N_pairs | P_up_given_up | P_up_given_down | delta_P | z | p_value |
 |---|---|---:|---:|---:|---:|---:|---:|
 | btc | 15m | 8627 | 0.4675 | 0.5282 | -0.0606 | -5.6324 | 1.78e-08 |
 | eth | 15m | 8627 | 0.4633 | 0.5344 | -0.0711 | -6.6003 | 4.10e-11 |
@@ -282,13 +282,33 @@ Second-order context is not "zero information," but in practical classification 
 
 ![Figure 3](/assets/images/2026-03-11-polymarket-random-walk/outcome/figure3_rolling_stability_share_negative.png)
 
-Shares of rolling windows with negative `P(Up|Up)-P(Up|Down)`:
+Shares of rolling windows with negative `P_up_given_up - P_up_given_down`:
 - btc: 0.859
 - eth: 0.864
 - sol: 0.797
 - xrp: 0.870
 
 This makes the 15m reversal ordering look persistent rather than a one-off full-sample artifact.
+
+**Figure 3b. Rolling transition paths with upward crossover dates (window=200)**
+
+![Figure 3b](/assets/images/2026-03-11-polymarket-random-walk/outcome/figure8_rolling_transition_upward_crossovers.png)
+
+This chart helps reconcile two facts at once: full-sample dependence is reversal-like, but local windows can still flip temporarily.
+
+I call these flip points **upward crossovers**, defined as dates where:
+\[
+\text{roll }P(\text{Up}\mid \text{Up}) - \text{roll }P(\text{Up}\mid \text{Down})
+\]
+crosses from non-positive to positive.
+
+The overlap coverage is not small:
+- crossover dates (unique) by symbol: BTC 21, ETH 19, SOL 38, XRP 22
+- union of crossover dates across all symbols: 67 days
+- dates shared by at least 2 symbols: 30 days, i.e. **44.8%** of union dates
+- per-symbol share of crossover dates that overlap with at least one other symbol: BTC 61.9%, ETH 63.2%, SOL 57.9%, XRP 72.7%
+
+So even though the baseline ordering is mostly reversal-like, there are synchronized windows where this ordering weakens or locally inverts across multiple symbols at the same time.
 
 ### 5.9 Gap regime splits are interesting under shift spec
 
@@ -312,14 +332,45 @@ Under this specification, higher-gap windows look more predictable, though the l
 
 If you've read this far, you probably saw the trap coming: timing alignment can quietly make a regime story look much stronger than it really is.
 
-Under `noshift`, pooled high-minus-low is strongly positive across windows; under `shift`, it turns slightly negative.
+I did not catch this immediately in the first pass. My initial `Gap_t` construction (the no-shift version) used rolling transition estimates that include the transition ending at timestamp \(t\). Then I evaluated prediction quality at that same timestamp. That is exactly the kind of subtle timing leak that can inflate regime separation.
+
+After adding the strict `shift` check (features at \(t\) must be available by \(t-1\) only), the gap-regime uplift changed direction.
+
+Under `noshift`, pooled high-minus-low is strongly positive across windows; under `shift`, it turns slightly negative:
 
 - No-shift symbol-level mean high-minus-low: about 0.196 to 0.205
 - Shift symbol-level mean high-minus-low: about -0.018 to -0.009
 - No-shift strict ordering (`high > medium > low`) holds across all tested windows
 - Shift mostly fails this strict ordering criterion
 
-This is exactly where "future-function leakage" sneaks in when nobody is looking. I treat no-shift as descriptive diagnostics, and shift as the conservative predictive reference.
+So no-shift remains useful for descriptive pattern reading, but I treat shift as the conservative predictive reference.
+
+### 5.11 Why one timing adjustment can still move the result a lot
+
+**Figure 6. Regime switch matrix and transition-wise delta z**
+
+![Figure 6](/assets/images/2026-03-11-polymarket-random-walk/outcome/figure6_regime_switch_and_delta_z.png)
+
+The shift operation changes only one bar in alignment, but it can still move a material share of regime assignments near thresholds.
+
+In this sample:
+- about 5.2% of rows switch regime bucket after applying shift
+- most switches are `medium <-> high` or `medium <-> low`, while `low <-> high` is almost absent
+- transition-wise `delta_z` is asymmetric: `UU`/`DD` move down, `UD`/`DU` move up
+
+That is enough to reshuffle the composition of high/low buckets, and the pooled accuracy spread can flip even without dramatic visual change in the raw series.
+
+### 5.12 Overlay remains informative, but it is descriptive evidence
+
+**Figure 7. z_gap and rolling prediction accuracy overlay (window=200)**
+
+![Figure 7](/assets/images/2026-03-11-polymarket-random-walk/outcome/figure7_zgap_rolling_accuracy_overlay.png)
+
+Visually, `z_gap_t` and rolling reversal accuracy co-move a lot. This is still useful because it says the dependence-strength proxy is not random noise.
+
+But I would frame this as descriptive coherence, not causal proof by itself. The conservative takeaway remains:
+- the outcome process has a weak, persistent 15m dependence layer,
+- and any regime-based uplift claim must pass strict timing alignment first.
 
 ## 6. What this means for strategy design
 
