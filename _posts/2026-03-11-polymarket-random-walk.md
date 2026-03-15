@@ -86,49 +86,49 @@ The guiding principle is simple: descriptive structure is not automatically trad
 
 ### 4.1 Notation and core formulas
 
-Let \(X_t \in \{0,1\}\), where \(1=\text{Up}\), \(0=\text{Down}\).
+Let $X_t \in \{0,1\}$, where $1=\text{Up}$, $0=\text{Down}$.
 
 Symmetry benchmark:
 
-\[
+$$
 H_0: P(X_t=1)=0.5
-\]
+$$
 
 First-order Markov benchmark:
 
-\[
+$$
 P(X_t \mid X_{t-1},X_{t-2},\dots)=P(X_t \mid X_{t-1})
-\]
+$$
 
-Transition MLEs (from counts \(N_{UU},N_{UD},N_{DU},N_{DD}\)):
+Transition MLEs (from counts $N_{UU},N_{UD},N_{DU},N_{DD}$):
 
-\[
+$$
 \hat P(\text{Up}\mid \text{Up})=\frac{N_{UU}}{N_{UU}+N_{UD}},\quad
 \hat P(\text{Up}\mid \text{Down})=\frac{N_{DU}}{N_{DU}+N_{DD}}
-\]
+$$
 
-\[
+$$
 \Delta_P=\hat P(\text{Up}\mid \text{Up})-\hat P(\text{Up}\mid \text{Down})
-\]
+$$
 
 Second-order context MLE:
 
-\[
+$$
 \hat P(X_t=1\mid X_{t-1}=i,X_{t-2}=j)=
 \frac{N_{(j,i)\rightarrow 1}}{N_{(j,i)\rightarrow 0}+N_{(j,i)\rightarrow 1}}
-\]
+$$
 
-Rolling gap definition (window \(W\)):
+Rolling gap definition (window $W$):
 
-\[
+$$
 \text{Gap}_t^{(W)}=\hat P_t^{(W)}(\text{Up}\mid \text{Down})-\hat P_t^{(W)}(\text{Up}\mid \text{Up})
-\]
+$$
 
 with rolling MLEs computed from transition counts inside the rolling window.
 
 Standardized gap in the notebook:
 
-\[
+$$
 \text{SE}_t=
 \sqrt{
 \frac{\hat p_{UD,t}(1-\hat p_{UD,t})}{n_{\text{prev down},t}}
@@ -137,21 +137,21 @@ Standardized gap in the notebook:
 }
 ,\quad
 z_{gap,t}=\frac{\text{Gap}_t}{\text{SE}_t}
-\]
+$$
 
 Simple reversal predictor used for benchmark:
 
-\[
+$$
 \hat X_t=
 \begin{cases}
 0,& X_{t-1}=1\\
 1,& X_{t-1}=0
 \end{cases}
-\]
+$$
 
 Timing discipline note:
-- `noshift`: regime features at \(t\) may include transition information ending at \(t\).
-- `shift`: regime features used at \(t\) are shifted to use information available by \(t-1\) only.
+- `noshift`: regime features at $t$ may include transition information ending at $t$.
+- `shift`: regime features used at $t$ are shifted to use information available by $t-1$ only.
 
 ## 5. Main findings
 
@@ -297,9 +297,9 @@ This makes the 15m reversal ordering look persistent rather than a one-off full-
 This chart helps reconcile two facts at once: full-sample dependence is reversal-like, but local windows can still flip temporarily.
 
 I call these flip points **upward crossovers**, defined as dates where:
-\[
+$$
 \text{roll }P(\text{Up}\mid \text{Up}) - \text{roll }P(\text{Up}\mid \text{Down})
-\]
+$$
 crosses from non-positive to positive.
 
 The overlap coverage is not small:
@@ -332,9 +332,9 @@ Under this specification, higher-gap windows look more predictable, though the l
 
 If you've read this far, you probably saw the trap coming: timing alignment can quietly make a regime story look much stronger than it really is.
 
-I did not catch this immediately in the first pass. My initial `Gap_t` construction (the no-shift version) used rolling transition estimates that include the transition ending at timestamp \(t\). Then I evaluated prediction quality at that same timestamp. That is exactly the kind of subtle timing leak that can inflate regime separation.
+I did not catch this immediately in the first pass. My initial `Gap_t` construction (the no-shift version) used rolling transition estimates that include the transition ending at timestamp $t$. Then I evaluated prediction quality at that same timestamp. That is exactly the kind of subtle timing leak that can inflate regime separation.
 
-After adding the strict `shift` check (features at \(t\) must be available by \(t-1\) only), the gap-regime uplift changed direction.
+After adding the strict `shift` check (features at $t$ must be available by $t-1$ only), the gap-regime uplift changed direction.
 
 Under `noshift`, pooled high-minus-low is strongly positive across windows; under `shift`, it turns slightly negative:
 
